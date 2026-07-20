@@ -186,11 +186,50 @@
   @keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
   @media (max-width:520px){.pips{grid-template-columns:repeat(5,1fr)}}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  /* password lock screen */
+  #lockScreen{
+    position:fixed;inset:0;z-index:200;
+    background:linear-gradient(170deg,var(--bg2),var(--bg) 55%);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .lock-panel{
+    background:var(--card);border:1px solid var(--edge);border-radius:22px;
+    padding:34px 28px;max-width:340px;width:100%;text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .lock-mark{font-size:44px;margin-bottom:10px}
+  .lock-panel h2{font-family:var(--display);font-size:24px;margin:0 0 4px}
+  .lock-panel p{color:var(--dim);font-size:14px;margin:0 0 18px}
+  #pwInput{
+    width:100%;box-sizing:border-box;text-align:center;letter-spacing:.3em;
+    background:var(--bg);border:1px solid var(--edge);border-radius:12px;
+    color:var(--ink);padding:14px;font-size:18px;font-family:inherit;margin-bottom:12px;
+  }
+  #pwInput:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  #pwBtn{
+    width:100%;padding:13px 0;border:none;border-radius:12px;cursor:pointer;
+    font-family:inherit;font-weight:800;font-size:15px;
+    background:linear-gradient(135deg,var(--green),var(--green2));color:#06240F;
+  }
+  .pw-error{color:#ff9aa8;font-size:13px;font-weight:700;min-height:18px;margin-top:10px}
+  .lock-panel.shake{animation:pwshake .4s ease}
+  @keyframes pwshake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 </style>
 </head>
 <body>
+<div id="lockScreen">
+  <div class="lock-panel">
+    <div class="lock-mark" aria-hidden="true">🔒</div>
+    <h2>Darren's Dashboard</h2>
+    <p>Enter the password to continue</p>
+    <input id="pwInput" type="password" inputmode="numeric" placeholder="Password" autocomplete="off">
+    <button id="pwBtn">Unlock</button>
+    <div id="pwError" class="pw-error"></div>
+  </div>
+</div>
 <div class="confetti" id="confetti"></div>
-<div class="wrap">
+<div class="wrap" id="appWrap" style="display:none">
   <header>
     <div class="eyebrow">✦ 5000 gets the reward ✦</div>
     <h1>Darren's Dashboard</h1>
@@ -297,6 +336,31 @@
 </div>
 
 <script>
+// ── password gate ── asks every time the page is opened
+const PASSWORD = "2327";
+(function(){
+  const screen = document.getElementById("lockScreen");
+  const panel = screen.querySelector(".lock-panel");
+  const input = document.getElementById("pwInput");
+  const btn = document.getElementById("pwBtn");
+  const err = document.getElementById("pwError");
+  function attempt(){
+    if (input.value === PASSWORD){
+      screen.style.display = "none";
+      document.getElementById("appWrap").style.display = "";
+      startApp();
+    } else {
+      err.textContent = "Wrong password — try again";
+      panel.classList.remove("shake"); void panel.offsetWidth; panel.classList.add("shake");
+      input.value = ""; input.focus();
+    }
+  }
+  btn.onclick = attempt;
+  input.addEventListener("keydown", e => { if (e.key === "Enter") attempt(); });
+  input.focus();
+})();
+
+function startApp(){
 const GOAL = 5000;
 const SEASON = 100000;
 const SLOTS = 20;
@@ -680,6 +744,7 @@ wireNote("noteDarren", "noteDarren", "noteDarrenSaved");
 render();
 connectCloud();
 setInterval(render, 60000); // keep "time ago" fresh
+} // end startApp
 </script>
 </body>
 </html>
