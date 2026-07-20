@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darren's Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --bg:#161917; --bg2:#1E2320; --card:#232926; --edge:#333B36;
+    --ink:#EDF2EE; --dim:#93A099;
+    --green:#4ADE80; --green2:#22A85B; --lime:#A3E635;
+    --display:'Bricolage Grotesque','Avenir Next',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; color:var(--ink);
+    background:linear-gradient(170deg,var(--bg2),var(--bg) 55%);
+    font-family:'Nunito','Segoe UI',system-ui,sans-serif;
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:860px;margin:0 auto}
+  header{text-align:center;margin-bottom:24px}
+  .eyebrow{font-size:12px;letter-spacing:.3em;color:var(--green);text-transform:uppercase;font-weight:800}
+  h1{font-family:var(--display);font-size:clamp(28px,5vw,42px);margin:6px 0 2px;font-weight:800}
+  .substat{color:var(--dim);font-size:14px}
+  .substat strong{color:var(--ink)}
+  .sync-status{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--dim);background:var(--card);border:1px solid var(--edge);border-radius:99px;padding:4px 12px}
+  .sync-status.ok{color:var(--green);border-color:var(--green2)}
+
+  .gauge{position:relative;width:300px;height:300px;margin:0 auto}
+  .gauge svg{transform:rotate(-90deg)}
+  #arc{transition:stroke-dasharray .8s cubic-bezier(.2,.8,.3,1)}
+  .gauge-center{
+    position:absolute;inset:40px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,var(--bg2),var(--bg));
+    border:1px solid var(--edge);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .gauge-center.ready{animation:pulse 1.6s ease-in-out infinite}
+  .gauge-label{font-size:12px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase}
+  #balance{font-family:var(--display);font-size:52px;font-weight:800;line-height:1.05}
+  #togo{font-size:13px;color:var(--dim);font-weight:600}
+  #togo.ready{color:var(--green)}
+  .pct{text-align:center;color:var(--dim);font-size:13px;margin:6px 0 26px}
+
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:20px;padding:22px}
+  .label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:12px}
+
+  /* giant lock */
+  #lockCard{margin-bottom:18px;text-align:center;padding:30px 22px}
+  #lockCard.ready{border-color:var(--green);background:linear-gradient(135deg,rgba(74,222,128,.12),var(--card))}
+  .lock-wrap{width:170px;margin:0 auto 10px;cursor:default}
+  #lockCard.ready .lock-wrap{cursor:pointer;animation:shake .7s ease}
+  #lockCard.ready .lock-wrap:hover{transform:scale(1.04)}
+  .lock-wrap{transition:transform .15s ease}
+  #shackle{transform-origin:63px 60px;transition:transform .6s cubic-bezier(.3,1.6,.4,1)}
+  #lockCard.ready #shackle{transform:rotate(-32deg) translateY(-6px)}
+  #lockBody{transition:fill .4s ease}
+  #lockGlow{opacity:0;transition:opacity .5s ease}
+  #lockCard.ready #lockGlow{opacity:1;animation:glowpulse 1.8s ease-in-out infinite}
+  .lock-caption{font-weight:800;font-size:16px}
+  .lock-caption.ready{color:var(--green)}
+  .lock-sub{font-size:13px;color:var(--dim);margin-top:4px}
+  @keyframes shake{
+    0%,100%{transform:rotate(0)}
+    15%{transform:rotate(-6deg)} 30%{transform:rotate(6deg)}
+    45%{transform:rotate(-4deg)} 60%{transform:rotate(4deg)}
+    75%{transform:rotate(-2deg)} 90%{transform:rotate(2deg)}
+  }
+  @keyframes glowpulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+  input{
+    background:var(--bg);border:1px solid var(--edge);border-radius:12px;
+    color:var(--ink);padding:12px 14px;font-size:15px;width:100%;font-family:inherit;
+  }
+  input::placeholder{color:var(--dim);opacity:.7}
+  input:focus-visible,button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  button{cursor:pointer;font-family:inherit;border:none;border-radius:12px;font-weight:800;font-size:15px}
+
+  /* credit bank */
+  #creditCard{margin-bottom:18px}
+  .credit-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  #creditNum{font-family:var(--display);font-size:34px;font-weight:800;color:var(--green)}
+  .credit-of{color:var(--dim);font-size:14px;font-weight:600}
+  .credit-bar{height:10px;background:var(--bg);border:1px solid var(--edge);border-radius:99px;overflow:hidden;margin-bottom:16px}
+  #creditFill{height:100%;width:0%;background:linear-gradient(90deg,var(--green2),var(--green),var(--lime));border-radius:99px;transition:width .8s cubic-bezier(.2,.8,.3,1)}
+  .pips{display:grid;grid-template-columns:repeat(10,1fr);gap:8px}
+  .pip{
+    aspect-ratio:1/1;border-radius:10px;border:1px solid var(--green2);
+    background:linear-gradient(135deg,rgba(74,222,128,.18),var(--bg));
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--green);
+    cursor:pointer;padding:0;transition:transform .1s ease;
+  }
+  .pip:hover{transform:scale(1.06)}
+  .pip.used{
+    background:var(--bg);border-color:var(--edge);color:var(--dim);
+    opacity:.45;text-decoration:line-through;text-decoration-thickness:2px;
+  }
+  .pips-empty{grid-column:1/-1;color:var(--dim);font-size:13px;padding:14px 0;text-align:center}
+
+  /* notes */
+  .notepad{
+    width:100%;box-sizing:border-box;min-height:110px;resize:vertical;
+    background:var(--bg);border:1px solid var(--edge);border-radius:12px;
+    color:var(--ink);padding:12px 14px;font-size:14px;line-height:1.5;
+    font-family:inherit;
+  }
+  .notepad::placeholder{color:var(--dim);opacity:.7}
+  .notepad:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  .note-foot{display:flex;justify-content:flex-end;margin-top:8px;min-height:16px}
+  .note-saved{font-size:11px;color:var(--green);font-weight:700;opacity:0;transition:opacity .3s ease}
+  .note-saved.show{opacity:1}
+  .credit-note{font-size:12px;color:var(--dim);margin-top:12px}
+
+  /* reward record */
+  #recordBox{margin-top:14px}
+  .rec{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--edge);border-radius:12px;padding:10px 12px;margin-bottom:8px;flex-wrap:wrap}
+  .rec .recnum{font-weight:800;color:var(--green);min-width:56px;font-size:13px}
+  .rec .recname{flex:1;min-width:120px;font-size:14px;font-weight:700;color:var(--ink)}
+  .rec .recdate{font-size:11px;color:var(--dim);flex-shrink:0}
+  .rec .recactions{display:flex;gap:6px;flex-shrink:0}
+  .rec .recbtn{
+    padding:6px 12px;border-radius:9px;font-size:12px;font-weight:800;
+    background:var(--card);border:1px solid var(--edge);color:var(--dim);cursor:pointer;
+  }
+  .rec .recbtn:hover{border-color:var(--dim)}
+  .recbtn.on-accept{background:var(--green2);border-color:var(--green);color:#06240F}
+  .recbtn.on-reject{background:#3a1f24;border-color:#e06a7a;color:#ff9aa8}
+  .recbtn.on-double{background:#3a3410;border-color:var(--lime);color:var(--lime)}
+  /* whole row tint by status */
+  .rec.st-accept{border-color:var(--green);background:linear-gradient(135deg,rgba(74,222,128,.10),var(--bg))}
+  .rec.st-reject{border-color:#e06a7a;background:linear-gradient(135deg,rgba(224,106,122,.10),var(--bg))}
+  .rec.st-double{border-color:var(--lime);background:linear-gradient(135deg,rgba(163,230,53,.12),var(--bg))}
+  .rec .recstatus{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;flex-basis:100%;color:var(--dim)}
+  .rec.st-accept .recstatus{color:var(--green)}
+  .rec.st-reject .recstatus{color:#ff9aa8}
+  .rec.st-double .recstatus{color:var(--lime)}
+
+  /* popup modal */
+  #overlay{
+    position:fixed;inset:0;background:rgba(10,12,11,.7);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;z-index:100;padding:16px;
+  }
+  #overlay.open{display:flex}
+  .modal{
+    background:var(--card);border:1px solid var(--green2);border-radius:20px;
+    padding:24px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);
+    animation:pop .25s ease;
+  }
+  .modal h2{font-family:var(--display);font-size:20px;margin:0 0 6px}
+  .modal p{color:var(--dim);font-size:14px;margin:0 0 14px}
+  .modal input{margin-bottom:14px}
+  .modal-btns{display:flex;gap:8px}
+  .modal-btns button{flex:1;padding:12px 0;font-size:14px}
+  .btn-confirm{background:linear-gradient(135deg,var(--green),var(--green2));color:#06240F}
+  .btn-ghost{background:var(--bg);border:1px solid var(--edge);color:var(--ink)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  .add-row{display:flex;gap:8px;margin-bottom:10px}
+  #amount{width:110px;flex-shrink:0}
+  #addBtn{width:100%;padding:12px 0;background:var(--green);color:#06240F;margin-bottom:12px}
+  .quick{display:flex;gap:8px;flex-wrap:wrap}
+  .quick button{flex:1;min-width:60px;padding:10px 0;border-radius:10px;border:1px solid var(--edge);background:var(--bg);color:var(--ink);font-weight:700}
+
+  #historyList{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto}
+  .entry{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--edge);border-radius:12px;padding:9px 12px}
+  .entry .amt{font-weight:800;min-width:62px}
+  .entry .amt.pos{color:var(--green)} .entry .amt.neg{color:var(--dim)}
+  .entry .note{flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .entry .when{font-size:11px;color:var(--dim);flex-shrink:0}
+  .entry .del{background:transparent;color:var(--dim);font-size:15px;padding:2px;border-radius:6px}
+  .empty{color:var(--dim);font-size:14px;padding:18px 0}
+
+  .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:90}
+  .confetti span{position:absolute;bottom:35%;animation:floatup var(--dur) var(--delay) ease-out forwards;opacity:0}
+
+  @keyframes floatup{
+    0%{transform:translate(0,0) scale(.4) rotate(0);opacity:0}
+    12%{opacity:1}
+    100%{transform:translate(var(--dx),-70vh) scale(var(--sc)) rotate(var(--rot));opacity:0}
+  }
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.3)}50%{box-shadow:0 0 0 14px rgba(74,222,128,0)}}
+  @keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
+  @media (max-width:520px){.pips{grid-template-columns:repeat(5,1fr)}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="confetti" id="confetti"></div>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">✦ 5000 gets the reward ✦</div>
+    <h1>Darren's Dashboard</h1>
+    <div class="substat">Lifetime earned: <strong id="lifetime">0</strong> · Rewards unlocked: <strong id="unlockedCount">0</strong></div>
+    <div id="syncStatus" class="sync-status">○ Connecting…</div>
+  </header>
+
+  <div class="gauge">
+    <svg width="300" height="300" viewBox="0 0 300 300">
+      <circle cx="150" cy="150" r="118" fill="none" stroke="var(--edge)" stroke-width="16"/>
+      <g id="ticks"></g>
+      <circle id="arc" cx="150" cy="150" r="118" fill="none" stroke="url(#grad)" stroke-width="16" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#4ADE80"/><stop offset="100%" stop-color="#A3E635"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="gauge-center" id="gaugeCenter">
+      <div class="gauge-label">Balance</div>
+      <div id="balance">0</div>
+      <div id="togo">5,000 to go</div>
+    </div>
+  </div>
+  <div class="pct" id="pct">0% of the way there</div>
+
+  <div class="card" id="lockCard">
+    <div class="lock-wrap" id="lockWrap" role="button" tabindex="0" aria-label="Reward lock">
+      <svg viewBox="0 0 200 210" width="100%" xmlns="http://www.w3.org/2000/svg">
+        <ellipse id="lockGlow" cx="100" cy="140" rx="86" ry="66" fill="rgba(74,222,128,.25)"/>
+        <g id="shackle">
+          <path d="M63 105 V70 a37 37 0 0 1 74 0 v35" fill="none" stroke="#93A099" stroke-width="16" stroke-linecap="round"/>
+        </g>
+        <rect id="lockBody" x="42" y="100" width="116" height="86" rx="18" fill="#333B36" stroke="#4A554E" stroke-width="3"/>
+        <circle id="keyDot" cx="100" cy="136" r="11" fill="#161917"/>
+        <rect id="keySlot" x="95" y="140" width="10" height="24" rx="5" fill="#161917"/>
+      </svg>
+    </div>
+    <div class="lock-caption" id="lockCaption">Locked</div>
+    <div class="lock-sub" id="lockSub">Reach 5,000 points to open the lock</div>
+  </div>
+
+  <div class="card" id="creditCard">
+    <div class="label">Credit points · season of 20 rewards</div>
+    <div class="credit-top">
+      <span id="creditNum">0</span>
+      <span class="credit-of">/ 100,000 credit points · <strong id="pipCount" style="color:var(--ink)">0 of 20</strong> rewards used</span>
+    </div>
+    <div class="credit-bar"><div id="creditFill"></div></div>
+    <div class="pips" id="pips"></div>
+    <div class="credit-note">You have successfully earnt 100,000 points and above are your 20 prizes. Ts and Cs apply.</div>
+    <div id="recordBox" hidden>
+      <div class="label" style="margin-top:6px">Reward record</div>
+      <div id="recordList"></div>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h2 id="modalTitle">Use prize</h2>
+      <p id="modalText"></p>
+      <input id="modalInput" placeholder="What was the reward? e.g. Spa day">
+      <div class="modal-btns">
+        <button class="btn-ghost" id="modalCancel">Cancel</button>
+        <button class="btn-confirm" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">Add points</div>
+      <div class="add-row">
+        <input id="amount" type="number" min="1" placeholder="Amount">
+        <input id="note" placeholder="For what? (optional)">
+      </div>
+      <button id="addBtn">+ Add points</button>
+      <div class="quick">
+        <button data-q="50">+50</button>
+        <button data-q="100">+100</button>
+        <button data-q="250">+250</button>
+        <button data-q="500">+500</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">Recent activity</div>
+      <div id="historyList"><div class="empty">No points yet — add your first ones to start earning credit.</div></div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:18px">
+    <div class="card note-card">
+      <div class="label">Note to Jenna</div>
+      <textarea id="noteJenna" class="notepad" placeholder="Leave a message for Jenna…"></textarea>
+      <div class="note-foot"><span id="noteJennaSaved" class="note-saved"></span></div>
+    </div>
+    <div class="card note-card">
+      <div class="label">Note to Darren</div>
+      <textarea id="noteDarren" class="notepad" placeholder="Leave a message for Darren…"></textarea>
+      <div class="note-foot"><span id="noteDarrenSaved" class="note-saved"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GOAL = 5000;
+const SEASON = 100000;
+const SLOTS = 20;
+const KEY = "darrens-dashboard-v2";
+const C = 2 * Math.PI * 118;
+
+// ══════════════════════════════════════════════════════════════════
+//  FIREBASE SETUP — paste your own config between the { } below.
+//  Get it from the Firebase console (see the setup steps I gave you).
+//  Until you paste it, the dashboard still works on this one device.
+// ══════════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDvj7s8IYHMoEb3UGT_maTgcZ9I-WNZPsc",
+  authDomain: "darren-dashboard-e6c02.firebaseapp.com",
+  databaseURL: "https://darren-dashboard-e6c02-default-rtdb.firebaseio.com",
+  projectId: "darren-dashboard-e6c02",
+  storageBucket: "darren-dashboard-e6c02.firebasestorage.app",
+  messagingSenderId: "133234041855",
+  appId: "1:133234041855:web:1243c5303f59f299b07dca",
+  measurementId: "G-PJ2RE668NT"
+};
+const CLOUD_ON = !firebaseConfig.apiKey.startsWith("PASTE_");
+let dbRef = null;
+let applyingRemote = false; // guards against echo loops
+
+let state = { points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, noteJenna:"", noteDarren:"" };
+// usedBlocks: 20 booleans · blockRecords: 20 slots of null or {name, ts, status} · earnedBlocks: how many blocks have appeared
+
+// load local copy first so there's something on screen instantly / offline
+try {
+  const saved = localStorage.getItem(KEY);
+  if (saved) state = Object.assign(state, JSON.parse(saved));
+  else {
+    const old = localStorage.getItem("darrens-dashboard-v1");
+    if (old) {
+      const o = JSON.parse(old);
+      state = Object.assign(state, o);
+      state.unlocked = (o.unlocked || []).map(r => Object.assign({used:false}, r));
+    }
+  }
+} catch(e){ console.error("load failed", e); }
+
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString();
+const timeAgo = ts => {
+  const m = Math.floor((Date.now()-ts)/60000);
+  if (m < 1) return "just now";
+  if (m < 60) return m + "m ago";
+  const h = Math.floor(m/60);
+  if (h < 24) return h + "h ago";
+  return Math.floor(h/24) + "d ago";
+};
+
+// save: always keep a local copy; also push to the cloud when connected
+const save = () => {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){ console.error("save failed", e); }
+  if (dbRef && !applyingRemote){
+    dbRef.set(state).catch(e => console.error("cloud save failed", e));
+  }
+};
+
+// connect to the shared cloud copy
+function connectCloud(){
+  if (!CLOUD_ON) { setStatus("This device only — add Firebase to sync", false); return; }
+  try {
+    firebase.initializeApp(firebaseConfig);
+    dbRef = firebase.database().ref("dashboard");
+    // live listener: whenever the shared copy changes, update this screen
+    dbRef.on("value", (snap) => {
+      const remote = snap.val();
+      if (remote){
+        applyingRemote = true;
+        state = Object.assign({ points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, noteJenna:"", noteDarren:"" }, remote);
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+        normalizeBlocks();
+        render();
+        applyingRemote = false;
+        setStatus("Synced", true);
+      } else {
+        // nothing in the cloud yet — push our current copy up as the starting point
+        dbRef.set(state);
+      }
+    }, (err) => { console.error(err); setStatus("Offline — changes save on this device", false); });
+    firebase.database().ref(".info/connected").on("value", (s) => {
+      if (s.val() === true) setStatus("Synced", true);
+      else setStatus("Reconnecting…", false);
+    });
+  } catch(e){
+    console.error("cloud connect failed", e);
+    setStatus("This device only — check Firebase config", false);
+  }
+}
+function setStatus(text, ok){
+  const el = $("syncStatus");
+  if (!el) return;
+  el.textContent = (ok ? "● " : "○ ") + text;
+  el.className = "sync-status" + (ok ? " ok" : "");
+}
+
+
+// gauge milestone ticks every 1000
+(function(){
+  const g = $("ticks");
+  for (let i=1; i<=4; i++){
+    const a = (i/5) * 2*Math.PI - Math.PI/2;
+    const l = document.createElementNS("http://www.w3.org/2000/svg","line");
+    l.setAttribute("x1", 150 + Math.cos(a)*106); l.setAttribute("y1", 150 + Math.sin(a)*106);
+    l.setAttribute("x2", 150 + Math.cos(a)*130); l.setAttribute("y2", 150 + Math.sin(a)*130);
+    l.setAttribute("stroke", "#161917"); l.setAttribute("stroke-width", "5");
+    g.appendChild(l);
+  }
+})();
+
+// init blocks — the original 20 are already-earned rewards and always show;
+// each time the lock hits 5,000, one more block is added (21, 22, …)
+function normalizeBlocks(){
+  if (!Array.isArray(state.usedBlocks)) state.usedBlocks = [];
+  if (!Array.isArray(state.blockRecords)) state.blockRecords = [];
+  if (typeof state.earnedBlocks !== "number") state.earnedBlocks = SLOTS;
+  if (state.earnedBlocks < SLOTS) state.earnedBlocks = SLOTS; // never fewer than the original 20
+  while (state.usedBlocks.length < state.earnedBlocks) state.usedBlocks.push(false);
+  while (state.blockRecords.length < state.earnedBlocks) state.blockRecords.push(null);
+}
+normalizeBlocks();
+
+// popup modal logic
+let modalIndex = null;
+function openModal(i){
+  modalIndex = i;
+  const used = !!state.usedBlocks[i];
+  const rec = state.blockRecords[i];
+  $("modalInput").style.display = used ? "none" : "block";
+  if (used){
+    $("modalTitle").textContent = "Prize " + (i+1) + " — used";
+    $("modalText").textContent = (rec && rec.name ? "Reward: " + rec.name : "No reward name recorded") +
+      (rec && rec.ts ? " · used on " + new Date(rec.ts).toLocaleDateString() : "");
+    $("modalConfirm").textContent = "Restore prize";
+  } else {
+    $("modalTitle").textContent = "Use prize " + (i+1) + "?";
+    $("modalText").textContent = "This will shade the block out and add it to the prize record.";
+    $("modalInput").value = "";
+    $("modalConfirm").textContent = "Confirm use";
+  }
+  $("overlay").classList.add("open");
+  if (!used) setTimeout(() => $("modalInput").focus(), 50);
+}
+function closeModal(){ $("overlay").classList.remove("open"); modalIndex = null; }
+$("modalCancel").onclick = closeModal;
+$("overlay").onclick = (e) => { if (e.target === $("overlay")) closeModal(); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+$("modalInput").addEventListener("keydown", (e) => { if (e.key === "Enter") $("modalConfirm").click(); });
+$("modalConfirm").onclick = () => {
+  if (modalIndex === null) return;
+  const i = modalIndex;
+  if (state.usedBlocks[i]){
+    // restore
+    state.usedBlocks[i] = false;
+    state.blockRecords[i] = null;
+  } else {
+    // mark used with record
+    state.usedBlocks[i] = true;
+    state.blockRecords[i] = { name: $("modalInput").value.trim() || "Unnamed reward", ts: Date.now() };
+  }
+  save(); render(); closeModal();
+};
+
+let wasReady = state.points >= GOAL;
+function render(){
+  const ready = state.points >= GOAL;
+  const pct = Math.min(100, state.points/GOAL*100);
+
+  // hearts burst + add a new block on top of the original 20 each time the lock crosses 5,000
+  if (ready && !wasReady){
+    hearts();
+    state.earnedBlocks++;
+    state.usedBlocks.push(false);
+    state.blockRecords.push(null);
+    save();
+  }
+  wasReady = ready;
+
+  $("balance").textContent = fmt(state.points);
+  $("lifetime").textContent = fmt(state.lifetime);
+  $("unlockedCount").textContent = state.unlocked.length;
+  $("pct").textContent = Math.round(pct) + "% of the way there";
+  $("togo").textContent = ready ? "✦ reward ready ✦" : fmt(GOAL - state.points) + " to go";
+  $("togo").classList.toggle("ready", ready);
+  $("gaugeCenter").classList.toggle("ready", ready);
+
+  const arc = $("arc");
+  const filled = C * pct/100;
+  arc.setAttribute("stroke-dasharray", filled + " " + (C - filled));
+  arc.style.filter = ready ? "drop-shadow(0 0 10px rgba(74,222,128,.6))" : "none";
+
+  // giant lock
+  $("lockCard").classList.toggle("ready", ready);
+  $("lockCaption").textContent = ready ? "Unlocked — reward ready!" : "Locked";
+  $("lockCaption").classList.toggle("ready", ready);
+  $("lockSub").textContent = ready ? "Tap the lock to claim your reward" : fmt(GOAL - state.points) + " points until the lock opens";
+  document.getElementById("lockBody").setAttribute("fill", ready ? "#22A85B" : "#333B36");
+  document.getElementById("lockBody").setAttribute("stroke", ready ? "#4ADE80" : "#4A554E");
+
+  // credit bank
+  const credit = Math.min(SEASON, state.lifetime);
+  const earned = state.earnedBlocks;
+  const usedCount = state.usedBlocks.slice(0, earned).filter(Boolean).length;
+  $("creditNum").textContent = fmt(credit);
+  $("pipCount").textContent = usedCount + " of " + earned;
+  $("creditFill").style.width = (credit / SEASON * 100) + "%";
+
+  const pipsBox = $("pips");
+  pipsBox.innerHTML = "";
+  for (let i=0; i<earned; i++){
+    const used = !!state.usedBlocks[i];
+    const rec = state.blockRecords[i];
+    const d = document.createElement("button");
+    d.type = "button";
+    d.className = "pip" + (used ? " used" : "");
+    d.textContent = i + 1;
+    d.setAttribute("aria-pressed", used ? "true" : "false");
+    d.title = used ? ("Used" + (rec && rec.name ? ": " + rec.name : "")) : ("Tap when reward " + (i+1) + " is used");
+    d.onclick = () => openModal(i);
+    pipsBox.append(d);
+  }
+
+  // reward record list
+  const recs = state.blockRecords
+    .map((r, i) => r ? { ...r, block: i + 1, idx: i } : null)
+    .filter(Boolean)
+    .sort((a, b) => b.ts - a.ts);
+  $("recordBox").hidden = !recs.length;
+  const rlBox = $("recordList");
+  rlBox.innerHTML = "";
+  const statusText = { accept: "Accepted", reject: "Rejected", double: "Double — Jenna's choice" };
+  recs.forEach(r => {
+    const status = r.status || "";
+    const row = document.createElement("div");
+    row.className = "rec" + (status ? " st-" + status : "");
+
+    const num = document.createElement("span");
+    num.className = "recnum";
+    num.textContent = "Reward " + r.block;
+
+    const nm = document.createElement("span");
+    nm.className = "recname";
+    nm.textContent = r.name;
+
+    const dt = document.createElement("span");
+    dt.className = "recdate";
+    dt.textContent = new Date(r.ts).toLocaleDateString();
+
+    const actions = document.createElement("span");
+    actions.className = "recactions";
+    [["reject", "Reject"], ["accept", "Accept"], ["double", "Double"]].forEach(([key, label]) => {
+      const b = document.createElement("button");
+      b.className = "recbtn" + (status === key ? " on-" + key : "");
+      b.textContent = label;
+      b.onclick = () => {
+        state.blockRecords[r.idx].status = (state.blockRecords[r.idx].status === key) ? "" : key;
+        save(); render();
+      };
+      actions.append(b);
+    });
+
+    row.append(num, nm, dt, actions);
+    if (status){
+      const st = document.createElement("span");
+      st.className = "recstatus";
+      st.textContent = statusText[status];
+      row.append(st);
+    }
+    rlBox.append(row);
+  });
+
+  // history
+  const list = $("historyList");
+  list.innerHTML = "";
+  if (!state.history.length){
+    list.innerHTML = '<div class="empty">No points yet — add your first ones to start earning credit.</div>';
+  } else {
+    state.history.slice(0,12).forEach(h => {
+      const row = document.createElement("div");
+      row.className = "entry";
+      const amt = document.createElement("span");
+      amt.className = "amt " + (h.amount >= 0 ? "pos" : "neg");
+      amt.textContent = (h.amount >= 0 ? "+" : "") + fmt(h.amount);
+      const note = document.createElement("span");
+      note.className = "note";
+      note.textContent = h.note || "—";
+      const when = document.createElement("span");
+      when.className = "when";
+      when.textContent = timeAgo(h.ts);
+      row.append(amt, note, when);
+      if (h.amount > 0){
+        const del = document.createElement("button");
+        del.className = "del"; del.textContent = "×";
+        del.title = "Remove entry"; del.setAttribute("aria-label","Remove entry");
+        del.onclick = () => {
+          state.points = Math.max(0, state.points - h.amount);
+          state.lifetime = Math.max(0, state.lifetime - h.amount);
+          state.history = state.history.filter(x => x.id !== h.id);
+          save(); render();
+        };
+        row.append(del);
+      }
+      list.append(row);
+    });
+  }
+
+  // keep note boxes in sync with remote updates (but don't yank text while typing)
+  const jt = $("noteJenna"), dt2 = $("noteDarren");
+  if (jt && document.activeElement !== jt) jt.value = state.noteJenna || "";
+  if (dt2 && document.activeElement !== dt2) dt2.value = state.noteDarren || "";
+}
+
+function addPoints(n, label){
+  n = parseInt(n, 10);
+  if (!n || n <= 0) return;
+  state.points += n;
+  state.lifetime += n;
+  state.history.unshift({ id: Date.now() + "-" + Math.random(), amount: n, note: label || "", ts: Date.now() });
+  state.history = state.history.slice(0, 50);
+  save(); render();
+}
+
+function hearts(){
+  const box = $("confetti");
+  const colors = ["#4ADE80","#A3E635","#22A85B","#FF7AA8","#FFFFFF"];
+  for (let i=0; i<45; i++){
+    const s = document.createElement("span");
+    s.textContent = "❤";
+    s.style.left = (50 + (Math.random()-.5)*24) + "%";
+    s.style.fontSize = (14 + Math.random()*22) + "px";
+    s.style.color = colors[i % colors.length];
+    s.style.setProperty("--dx", ((Math.random()-.5)*60) + "vw");
+    s.style.setProperty("--rot", (Math.random()*80-40) + "deg");
+    s.style.setProperty("--sc", (0.9 + Math.random()*.8).toFixed(2));
+    s.style.setProperty("--dur", (2.2 + Math.random()*1.8) + "s");
+    s.style.setProperty("--delay", (Math.random()*.5) + "s");
+    box.append(s);
+    setTimeout(() => s.remove(), 5000);
+  }
+}
+
+$("addBtn").onclick = () => { addPoints($("amount").value, $("note").value); $("amount").value = ""; $("note").value = ""; };
+[$("amount"), $("note")].forEach(el => el.addEventListener("keydown", e => { if (e.key === "Enter") $("addBtn").click(); }));
+document.querySelectorAll(".quick button").forEach(b => b.onclick = () => addPoints(b.dataset.q, "quick add"));
+function claim(){
+  if (state.points < GOAL) return;
+  hearts();
+  state.points -= GOAL;
+  state.unlocked.unshift({ id: Date.now()+"", name: "Reward", ts: Date.now() });
+  state.history.unshift({ id: Date.now()+"-r", amount: -GOAL, note: "Lock opened — reward claimed", ts: Date.now() });
+  state.history = state.history.slice(0, 50);
+  wasReady = false;
+  save(); render();
+}
+$("lockWrap").onclick = claim;
+$("lockWrap").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); claim(); } });
+
+// two-way notes
+function wireNote(taId, stateKey, savedId){
+  const ta = $(taId);
+  ta.value = state[stateKey] || "";
+  let timer = null;
+  ta.addEventListener("input", () => {
+    state[stateKey] = ta.value;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      save();
+      const tag = $(savedId);
+      tag.textContent = "Saved ✓";
+      tag.classList.add("show");
+      setTimeout(() => tag.classList.remove("show"), 1500);
+    }, 400);
+  });
+}
+wireNote("noteJenna", "noteJenna", "noteJennaSaved");
+wireNote("noteDarren", "noteDarren", "noteDarrenSaved");
+
+render();
+connectCloud();
+setInterval(render, 60000); // keep "time ago" fresh
+</script>
+</body>
+</html>
