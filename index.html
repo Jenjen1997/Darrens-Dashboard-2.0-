@@ -31,46 +31,36 @@
   .sync-status.ok{color:var(--green);border-color:var(--green2)}
 
   .gauge{position:relative;width:300px;height:300px;margin:0 auto}
-  .gauge svg{transform:rotate(-90deg)}
+  .gauge > svg{transform:rotate(-90deg)}
   #arc{transition:stroke-dasharray .8s cubic-bezier(.2,.8,.3,1)}
   .gauge-center{
     position:absolute;inset:40px;border-radius:50%;
     background:radial-gradient(circle at 35% 30%,var(--bg2),var(--bg));
     border:1px solid var(--edge);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    cursor:default;transition:transform .15s ease,box-shadow .3s ease;
   }
-  .gauge-center.ready{animation:pulse 1.6s ease-in-out infinite}
-  .gauge-label{font-size:12px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase}
-  #balance{font-family:var(--display);font-size:52px;font-weight:800;line-height:1.05}
-  #togo{font-size:13px;color:var(--dim);font-weight:600}
+  .gauge-center.ready{cursor:pointer;border-color:var(--green);animation:pulse 1.6s ease-in-out infinite}
+  .gauge-center.ready:hover{transform:scale(1.03)}
+  #miniLock{margin-bottom:2px}
+  #miniShackle{transform-origin:50px 38px;transition:transform .6s cubic-bezier(.3,1.6,.4,1)}
+  .gauge-center.ready #miniShackle{transform:rotate(-28deg) translateY(-4px)}
+  #miniBody{transition:fill .4s ease,stroke .4s ease}
+  .gauge-center.ready #miniLock{animation:shake .7s ease}
+  #balance{font-family:var(--display);font-size:46px;font-weight:800;line-height:1.05}
+  #togo{font-size:13px;color:var(--dim);font-weight:600;text-align:center;padding:0 20px}
   #togo.ready{color:var(--green)}
   .pct{text-align:center;color:var(--dim);font-size:13px;margin:6px 0 26px}
 
   .card{background:var(--card);border:1px solid var(--edge);border-radius:20px;padding:22px}
   .label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:12px}
 
-  /* giant lock */
-  #lockCard{margin-bottom:18px;text-align:center;padding:30px 22px}
-  #lockCard.ready{border-color:var(--green);background:linear-gradient(135deg,rgba(74,222,128,.12),var(--card))}
-  .lock-wrap{width:170px;margin:0 auto 10px;cursor:default}
-  #lockCard.ready .lock-wrap{cursor:pointer;animation:shake .7s ease}
-  #lockCard.ready .lock-wrap:hover{transform:scale(1.04)}
-  .lock-wrap{transition:transform .15s ease}
-  #shackle{transform-origin:63px 60px;transition:transform .6s cubic-bezier(.3,1.6,.4,1)}
-  #lockCard.ready #shackle{transform:rotate(-32deg) translateY(-6px)}
-  #lockBody{transition:fill .4s ease}
-  #lockGlow{opacity:0;transition:opacity .5s ease}
-  #lockCard.ready #lockGlow{opacity:1;animation:glowpulse 1.8s ease-in-out infinite}
-  .lock-caption{font-weight:800;font-size:16px}
-  .lock-caption.ready{color:var(--green)}
-  .lock-sub{font-size:13px;color:var(--dim);margin-top:4px}
   @keyframes shake{
     0%,100%{transform:rotate(0)}
     15%{transform:rotate(-6deg)} 30%{transform:rotate(6deg)}
     45%{transform:rotate(-4deg)} 60%{transform:rotate(4deg)}
     75%{transform:rotate(-2deg)} 90%{transform:rotate(2deg)}
   }
-  @keyframes glowpulse{0%,100%{opacity:.5}50%{opacity:1}}
 
   input{
     background:var(--bg);border:1px solid var(--edge);border-radius:12px;
@@ -113,7 +103,42 @@
   .note-foot{display:flex;justify-content:flex-end;margin-top:8px;min-height:16px}
   .note-saved{font-size:11px;color:var(--green);font-weight:700;opacity:0;transition:opacity .3s ease}
   .note-saved.show{opacity:1}
+
+  /* message board */
+  .msg-send{display:flex;gap:8px;margin-top:10px}
+  .send-btn{flex:1;padding:11px 0;border:none;border-radius:11px;cursor:pointer;font-family:inherit;font-weight:800;font-size:14px}
+  .send-j{background:linear-gradient(135deg,var(--green),var(--green2));color:#06240F}
+  .send-d{background:var(--bg);border:1px solid var(--green2);color:var(--green)}
+  .send-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  .msg-log{display:flex;flex-direction:column;gap:10px;margin-top:16px;max-height:340px;overflow-y:auto}
+  .msg{background:var(--bg);border:1px solid var(--edge);border-radius:14px;padding:11px 14px}
+  .msg.latest{border-color:var(--green);background:linear-gradient(135deg,rgba(74,222,128,.10),var(--bg));padding:14px 16px}
+  .msg-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .msg-who{font-weight:800;font-size:13px}
+  .msg-who.j{color:var(--green)}
+  .msg-who.d{color:var(--lime)}
+  .msg-time{font-size:11px;color:var(--dim);margin-left:auto}
+  .msg-body{font-size:14px;line-height:1.5;color:var(--ink);white-space:pre-wrap;word-break:break-word}
+  .msg.latest .msg-body{font-size:16px}
+  .msg-del{background:transparent;border:none;color:var(--dim);font-size:15px;cursor:pointer;padding:0 2px;border-radius:6px}
+  .msg-empty{color:var(--dim);font-size:13px;padding:12px 0;text-align:center}
   .credit-note{font-size:12px;color:var(--dim);margin-top:12px}
+  .tc-link{color:var(--green);text-decoration:underline;cursor:pointer;font-weight:700}
+  #tcOverlay{
+    position:fixed;inset:0;background:rgba(10,12,11,.7);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;z-index:150;padding:16px;
+  }
+  #tcOverlay.open{display:flex}
+  .tc-modal{
+    background:var(--card);border:1px solid var(--green2);border-radius:20px;
+    padding:26px;max-width:460px;width:100%;max-height:82vh;overflow-y:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);animation:pop .25s ease;
+  }
+  .tc-modal h2{font-family:var(--display);font-size:22px;margin:0 0 14px}
+  .tc-list{margin:0 0 18px;padding-left:20px;display:flex;flex-direction:column;gap:12px}
+  .tc-list li{font-size:13.5px;line-height:1.55;color:var(--ink)}
+  .tc-list li::marker{color:var(--green);font-weight:800}
+  .tc-list li:last-child{color:var(--green);font-weight:700}
 
   /* reward record */
   #recordBox{margin-top:14px}
@@ -233,7 +258,6 @@
   <header>
     <div class="eyebrow">✦ 5000 gets the reward ✦</div>
     <h1>Darren's Dashboard</h1>
-    <div class="substat">Lifetime earned: <strong id="lifetime">0</strong> · Rewards unlocked: <strong id="unlockedCount">0</strong></div>
     <div id="syncStatus" class="sync-status">○ Connecting…</div>
   </header>
 
@@ -248,29 +272,20 @@
         </linearGradient>
       </defs>
     </svg>
-    <div class="gauge-center" id="gaugeCenter">
-      <div class="gauge-label">Balance</div>
+    <div class="gauge-center" id="gaugeCenter" role="button" tabindex="0" aria-label="Reward lock">
+      <svg id="miniLock" viewBox="0 0 100 112" width="48" height="54" xmlns="http://www.w3.org/2000/svg">
+        <g id="miniShackle">
+          <path d="M31 55 V37 a19 19 0 0 1 38 0 v18" fill="none" stroke="#93A099" stroke-width="9" stroke-linecap="round"/>
+        </g>
+        <rect id="miniBody" x="21" y="52" width="58" height="48" rx="11" fill="#333B36" stroke="#4A554E" stroke-width="2.5"/>
+        <circle cx="50" cy="72" r="6" fill="#161917"/>
+        <rect x="47" y="75" width="6" height="14" rx="3" fill="#161917"/>
+      </svg>
       <div id="balance">0</div>
       <div id="togo">5,000 to go</div>
     </div>
   </div>
   <div class="pct" id="pct">0% of the way there</div>
-
-  <div class="card" id="lockCard">
-    <div class="lock-wrap" id="lockWrap" role="button" tabindex="0" aria-label="Reward lock">
-      <svg viewBox="0 0 200 210" width="100%" xmlns="http://www.w3.org/2000/svg">
-        <ellipse id="lockGlow" cx="100" cy="140" rx="86" ry="66" fill="rgba(74,222,128,.25)"/>
-        <g id="shackle">
-          <path d="M63 105 V70 a37 37 0 0 1 74 0 v35" fill="none" stroke="#93A099" stroke-width="16" stroke-linecap="round"/>
-        </g>
-        <rect id="lockBody" x="42" y="100" width="116" height="86" rx="18" fill="#333B36" stroke="#4A554E" stroke-width="3"/>
-        <circle id="keyDot" cx="100" cy="136" r="11" fill="#161917"/>
-        <rect id="keySlot" x="95" y="140" width="10" height="24" rx="5" fill="#161917"/>
-      </svg>
-    </div>
-    <div class="lock-caption" id="lockCaption">Locked</div>
-    <div class="lock-sub" id="lockSub">Reach 5,000 points to open the lock</div>
-  </div>
 
   <div class="card" id="creditCard">
     <div class="label">Credit points · season of 20 rewards</div>
@@ -280,7 +295,7 @@
     </div>
     <div class="credit-bar"><div id="creditFill"></div></div>
     <div class="pips" id="pips"></div>
-    <div class="credit-note">You have successfully earnt 100,000 points and above are your 20 prizes. Ts and Cs apply.</div>
+    <div class="credit-note">You have successfully earnt 100,000 points and above are your 20 prizes. <a href="#" id="tcLink" class="tc-link">Terms &amp; Conditions apply.</a></div>
     <div id="recordBox" hidden>
       <div class="label" style="margin-top:6px">Reward record</div>
       <div id="recordList"></div>
@@ -295,6 +310,24 @@
       <div class="modal-btns">
         <button class="btn-ghost" id="modalCancel">Cancel</button>
         <button class="btn-confirm" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tcOverlay">
+    <div class="tc-modal" role="dialog" aria-modal="true" aria-labelledby="tcTitle">
+      <h2 id="tcTitle">Terms &amp; Conditions</h2>
+      <ol class="tc-list">
+        <li>Jenna retains final and absolute authority over the points system and the allocation of all points. This authority is not subject to negotiation or discussion.</li>
+        <li>Selecting <strong>Double</strong> does not guarantee that a reward will be doubled. It designates the reward as a wildcard, which may be increased, reduced, altered, doubled, withdrawn, or left unchanged at Jenna's discretion.</li>
+        <li>The rejection of a reward may open the matter to negotiation, or to an alternative arrangement better suited to both parties.</li>
+        <li>Where an accepted reward involves a specified date, time, or venue, these particulars shall be negotiated and mutually agreed upon by both parties.</li>
+        <li>Certain rewards may require Darren to complete a corresponding action. For a full breakdown, please contact Jenna via WhatsApp.</li>
+        <li>Points may be deducted where there is valid and fair reasoning, provided this is discussed and agreed upon by both parties.</li>
+        <li>Above all: this is made purely for fun — and you are an amazing human being.</li>
+      </ol>
+      <div class="modal-btns">
+        <button class="btn-confirm" id="tcClose">Got it</button>
       </div>
     </div>
   </div>
@@ -321,17 +354,14 @@
     </div>
   </div>
 
-  <div class="grid" style="margin-top:18px">
-    <div class="card note-card">
-      <div class="label">Note to Jenna</div>
-      <textarea id="noteJenna" class="notepad" placeholder="Leave a message for Jenna…"></textarea>
-      <div class="note-foot"><span id="noteJennaSaved" class="note-saved"></span></div>
+  <div class="card" id="logCard" style="margin-top:18px">
+    <div class="label">Note board</div>
+    <textarea id="msgInput" class="notepad" placeholder="Write a note…"></textarea>
+    <div class="msg-send">
+      <button class="send-btn send-j" data-who="Jenna">Send to Jenna</button>
+      <button class="send-btn send-d" data-who="Darren">Send to Darren</button>
     </div>
-    <div class="card note-card">
-      <div class="label">Note to Darren</div>
-      <textarea id="noteDarren" class="notepad" placeholder="Leave a message for Darren…"></textarea>
-      <div class="note-foot"><span id="noteDarrenSaved" class="note-saved"></span></div>
-    </div>
+    <div id="msgLog" class="msg-log"></div>
   </div>
 </div>
 
@@ -386,7 +416,7 @@ const CLOUD_ON = !firebaseConfig.apiKey.startsWith("PASTE_");
 let dbRef = null;
 let applyingRemote = false; // guards against echo loops
 
-let state = { points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, noteJenna:"", noteDarren:"" };
+let state = { points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[] };
 // usedBlocks: 20 booleans · blockRecords: 20 slots of null or {name, ts, status} · earnedBlocks: how many blocks have appeared
 
 // load local copy first so there's something on screen instantly / offline
@@ -433,7 +463,7 @@ function connectCloud(){
       const remote = snap.val();
       if (remote){
         applyingRemote = true;
-        state = Object.assign({ points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, noteJenna:"", noteDarren:"" }, remote);
+        state = Object.assign({ points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[] }, remote);
         try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
         normalizeBlocks();
         render();
@@ -543,10 +573,8 @@ function render(){
   wasReady = ready;
 
   $("balance").textContent = fmt(state.points);
-  $("lifetime").textContent = fmt(state.lifetime);
-  $("unlockedCount").textContent = state.unlocked.length;
   $("pct").textContent = Math.round(pct) + "% of the way there";
-  $("togo").textContent = ready ? "✦ reward ready ✦" : fmt(GOAL - state.points) + " to go";
+  $("togo").textContent = ready ? "✦ tap to claim ✦" : fmt(GOAL - state.points) + " to go";
   $("togo").classList.toggle("ready", ready);
   $("gaugeCenter").classList.toggle("ready", ready);
 
@@ -555,13 +583,10 @@ function render(){
   arc.setAttribute("stroke-dasharray", filled + " " + (C - filled));
   arc.style.filter = ready ? "drop-shadow(0 0 10px rgba(74,222,128,.6))" : "none";
 
-  // giant lock
-  $("lockCard").classList.toggle("ready", ready);
-  $("lockCaption").textContent = ready ? "Unlocked — reward ready!" : "Locked";
-  $("lockCaption").classList.toggle("ready", ready);
-  $("lockSub").textContent = ready ? "Tap the lock to claim your reward" : fmt(GOAL - state.points) + " points until the lock opens";
-  document.getElementById("lockBody").setAttribute("fill", ready ? "#22A85B" : "#333B36");
-  document.getElementById("lockBody").setAttribute("stroke", ready ? "#4ADE80" : "#4A554E");
+  // mini lock inside the circle
+  const mb = document.getElementById("miniBody");
+  mb.setAttribute("fill", ready ? "#22A85B" : "#333B36");
+  mb.setAttribute("stroke", ready ? "#4ADE80" : "#4A554E");
 
   // credit bank
   const credit = Math.min(SEASON, state.lifetime);
@@ -670,10 +695,7 @@ function render(){
     });
   }
 
-  // keep note boxes in sync with remote updates (but don't yank text while typing)
-  const jt = $("noteJenna"), dt2 = $("noteDarren");
-  if (jt && document.activeElement !== jt) jt.value = state.noteJenna || "";
-  if (dt2 && document.activeElement !== dt2) dt2.value = state.noteDarren || "";
+  renderMessages();
 }
 
 function addPoints(n, label){
@@ -718,32 +740,72 @@ function claim(){
   wasReady = false;
   save(); render();
 }
-$("lockWrap").onclick = claim;
-$("lockWrap").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); claim(); } });
+$("gaugeCenter").onclick = claim;
+$("gaugeCenter").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); claim(); } });
 
-// two-way notes
-function wireNote(taId, stateKey, savedId){
-  const ta = $(taId);
-  ta.value = state[stateKey] || "";
-  let timer = null;
-  ta.addEventListener("input", () => {
-    state[stateKey] = ta.value;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      save();
-      const tag = $(savedId);
-      tag.textContent = "Saved ✓";
-      tag.classList.add("show");
-      setTimeout(() => tag.classList.remove("show"), 1500);
-    }, 400);
+// message board
+function sendMessage(to){
+  const inp = $("msgInput");
+  const body = inp.value.trim();
+  if (!body) return;
+  if (!Array.isArray(state.messages)) state.messages = [];
+  state.messages.unshift({ id: Date.now() + "-" + Math.random(), to: to, body: body, ts: Date.now() });
+  state.messages = state.messages.slice(0, 200);
+  inp.value = "";
+  save(); renderMessages();
+}
+function renderMessages(){
+  const log = $("msgLog");
+  if (!log) return;
+  const msgs = (Array.isArray(state.messages) ? state.messages : []).slice().sort((a, b) => b.ts - a.ts);
+  log.innerHTML = "";
+  if (!msgs.length){
+    log.innerHTML = '<div class="msg-empty">No notes yet — write one and send it to Jenna or Darren.</div>';
+    return;
+  }
+  msgs.forEach(m => {
+    const wrap = document.createElement("div");
+    wrap.className = "msg";
+    const head = document.createElement("div");
+    head.className = "msg-head";
+    const who = document.createElement("span");
+    who.className = "msg-who " + (m.to === "Jenna" ? "j" : "d");
+    who.textContent = "To " + m.to;
+    const when = document.createElement("span");
+    when.className = "msg-time";
+    const d = new Date(m.ts);
+    when.textContent = d.toLocaleDateString() + " · " + d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+    const del = document.createElement("button");
+    del.className = "msg-del"; del.textContent = "×";
+    del.title = "Delete note"; del.setAttribute("aria-label","Delete note");
+    del.onclick = () => {
+      state.messages = state.messages.filter(x => x.id !== m.id);
+      save(); renderMessages();
+    };
+    head.append(who, when, del);
+    const bod = document.createElement("div");
+    bod.className = "msg-body";
+    bod.textContent = m.body;
+    wrap.append(head, bod);
+    log.append(wrap);
   });
 }
-wireNote("noteJenna", "noteJenna", "noteJennaSaved");
-wireNote("noteDarren", "noteDarren", "noteDarrenSaved");
+document.querySelectorAll(".send-btn").forEach(b => b.onclick = () => sendMessage(b.dataset.who));
+
+// terms & conditions modal
+(function(){
+  const link = $("tcLink"), ov = $("tcOverlay"), close = $("tcClose");
+  if (!link || !ov) return;
+  link.onclick = (e) => { e.preventDefault(); ov.classList.add("open"); };
+  close.onclick = () => ov.classList.remove("open");
+  ov.onclick = (e) => { if (e.target === ov) ov.classList.remove("open"); };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") ov.classList.remove("open"); });
+})();
 
 render();
 connectCloud();
 setInterval(render, 60000); // keep "time ago" fresh
+setTimeout(hearts, 150); // welcome burst on login
 } // end startApp
 </script>
 </body>
