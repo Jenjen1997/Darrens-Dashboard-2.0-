@@ -13,28 +13,26 @@
     --green:#008000; --green2:#046A04; --lime:#B8860B;
     --orange:#FF8C00; --orange2:#B45F06;
     --purple:#800080; --purple2:#550055;
+    --blue:#7FCFFF; --blue2:#2E86C1;
     --red:#CC0000; --red2:#800000;
     --field:#FFFFFF; --row:#F4F1E6;
     --tbar1:#000080; --tbar2:#1084D0;
+    --cloud:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='120' viewBox='0 0 240 120'%3E%3Cellipse cx='108' cy='96' rx='86' ry='22' fill='%23D9ECFB'/%3E%3Cellipse cx='70' cy='76' rx='56' ry='32' fill='%23FFFFFF'/%3E%3Cellipse cx='132' cy='60' rx='50' ry='40' fill='%23FFFFFF'/%3E%3Cellipse cx='180' cy='78' rx='44' ry='30' fill='%23FFFFFF'/%3E%3Cellipse cx='108' cy='88' rx='80' ry='26' fill='%23FFFFFF'/%3E%3C/svg%3E");
     --scene:
-      radial-gradient(58% 42% at 16% 122%, #2E7D32 55%, transparent 58%),
-      radial-gradient(66% 46% at 84% 128%, #43A047 55%, transparent 58%),
-      radial-gradient(90% 36% at 50% 138%, #66BB6A 60%, transparent 63%),
-      radial-gradient(circle at 13% 12%, #fff 0 16px, transparent 19px),
-      radial-gradient(circle at 20% 9%, #fff 0 20px, transparent 23px),
-      radial-gradient(circle at 27% 13%, #fff 0 13px, transparent 16px),
-      radial-gradient(circle at 73% 8%, #fff 0 18px, transparent 21px),
-      radial-gradient(circle at 80% 12%, #fff 0 22px, transparent 25px),
-      radial-gradient(circle at 87% 9%, #fff 0 13px, transparent 16px),
-      linear-gradient(180deg,#2F7BD6 0%,#6FB1EE 40%,#BFE3FB 68%,#E7F5FF 85%);
+      var(--cloud) 6% 6% / 200px 100px no-repeat,
+      var(--cloud) 58% 4% / 250px 125px no-repeat,
+      var(--cloud) 80% 15% / 150px 75px no-repeat,
+      var(--cloud) 30% 18% / 120px 60px no-repeat,
+      radial-gradient(58% 42% at 16% 122%, #2E7D32 55%, transparent 58%) no-repeat,
+      radial-gradient(66% 46% at 84% 128%, #43A047 55%, transparent 58%) no-repeat,
+      radial-gradient(90% 36% at 50% 138%, #66BB6A 60%, transparent 63%) no-repeat,
+      linear-gradient(180deg,#2F7BD6 0%,#6FB1EE 40%,#BFE3FB 68%,#E7F5FF 85%) no-repeat;
     --display:'Tahoma','MS Sans Serif',Verdana,Geneva,sans-serif;
   }
   *{box-sizing:border-box}
   body{
     margin:0; min-height:100vh; color:var(--ink);
     background:var(--scene);
-    background-repeat:no-repeat;
-    background-size:100% 100%;
     background-attachment:fixed;
     font-family:'Tahoma','MS Sans Serif',Verdana,Geneva,sans-serif;
     padding:28px 16px 60px;
@@ -222,6 +220,49 @@
   .keepsake-title{font-family:var(--display);font-size:14px;font-weight:700;color:var(--ink)}
   .keepsake-sub{font-size:12px;color:var(--dim)}
 
+  /* treasure chest — compact locked-surprise feature */
+  .chest-wrap{display:flex;justify-content:center;margin:20px 20px 0}
+  .chest-btn{
+    display:flex;align-items:center;gap:10px;
+    background:var(--card);border:2px outset var(--card);
+    box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 var(--edge);
+    border-radius:0;padding:8px 16px;transition:transform .15s ease;
+  }
+  .chest-btn:hover{transform:translateY(-1px)}
+  .chest-btn:focus-visible{outline:1px dotted var(--ink);outline-offset:1px}
+  .chest-icon{flex-shrink:0;transform-origin:50% 60%;transition:transform .35s cubic-bezier(.3,1.6,.4,1)}
+  .chest-btn:hover .chest-icon{transform:rotate(-6deg) scale(1.06)}
+  .chest-btn.pop .chest-icon{animation:keepsakePop .5s ease}
+  .chest-text{display:flex;flex-direction:column;gap:1px;text-align:left}
+  .chest-title{font-family:var(--display);font-size:13.5px;font-weight:700;color:var(--ink)}
+  .chest-sub{font-size:11.5px;color:var(--dim)}
+  .chest-sub:empty{display:none}
+  .chest-sub.ready{color:var(--green2);font-weight:700}
+
+  .chest-select{width:100%;margin-bottom:12px}
+  #chestBody{margin-bottom:12px}
+  #chestPin{margin-bottom:12px;letter-spacing:.4em;text-align:center}
+  #chestWhen{margin-bottom:4px}
+
+  .chest-item{background:var(--row);border:1px solid var(--edge);border-radius:0;padding:10px 12px;margin-bottom:8px}
+  .chest-item-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .chest-item-icon{font-size:16px;flex-shrink:0}
+  .chest-item-who{font-size:12.5px;font-weight:700;color:var(--ink);flex:1;min-width:120px}
+  .chest-item-when{font-size:11px;color:var(--dim)}
+  .chest-item-countdown{
+    font-size:11px;font-weight:700;color:var(--blue2);background:var(--field);
+    border:1px solid var(--edge);padding:2px 8px;flex-basis:100%;margin-top:6px;
+  }
+  .chest-item-countdown.ready{color:var(--green2)}
+  .chest-item-body{font-size:13px;line-height:1.5;color:var(--ink);white-space:pre-wrap;word-break:break-word;margin-top:8px;background:var(--field);border:1px solid var(--edge);box-shadow:inset 1px 1px 0 #000;padding:8px 10px;font-family:'Courier New',monospace}
+  .chest-unlock-row{display:flex;gap:6px;margin-top:8px}
+  .chest-unlock-row input{letter-spacing:.4em;text-align:center;flex:1}
+  .chest-unlock-row button{flex-shrink:0;padding:0 14px}
+  .chest-item-error{color:var(--red2);font-size:11px;font-weight:700;margin-top:6px;min-height:14px}
+  .chest-item-del{background:transparent;border:none;color:var(--dim);font-size:14px;cursor:pointer;padding:0 2px;flex-shrink:0}
+  .chest-empty{color:var(--dim);font-size:13px;padding:8px 0;text-align:center}
+  .chest-shake{animation:pwshake .4s ease}
+
   /* archive — read notes grouped by year & month, shown inside the keepsake modal */
   .mail-group{border:1px solid var(--edge);border-radius:0;margin-bottom:8px;overflow:hidden;background:var(--row)}
   .mail-group summary{
@@ -250,6 +291,11 @@
     display:none;align-items:center;justify-content:center;z-index:165;padding:16px;
   }
   #archiveOverlay.open{display:flex}
+  #chestOverlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.45);
+    display:none;align-items:center;justify-content:center;z-index:166;padding:16px;
+  }
+  #chestOverlay.open{display:flex}
   .archive-modal{
     background:var(--card);border:2px solid #000;border-radius:0;
     padding:0 0 16px;max-width:460px;width:100%;max-height:82vh;display:flex;flex-direction:column;
@@ -315,16 +361,16 @@
   .rec .recbtn:hover{border-color:var(--dim)}
   .recbtn.on-accept{background:var(--green2);border-color:#000;color:#fff;box-shadow:inset -1px -1px 0 #fff, inset 1px 1px 0 #000}
   .recbtn.on-reject{background:var(--orange2);border-color:#000;color:#fff3e8;box-shadow:inset -1px -1px 0 #fff, inset 1px 1px 0 #000}
-  .recbtn.on-double{background:var(--purple2);border-color:#000;color:#f8f0ff;box-shadow:inset -1px -1px 0 #fff, inset 1px 1px 0 #000}
+  .recbtn.on-double{background:var(--blue2);border-color:#000;color:#eaf7ff;box-shadow:inset -1px -1px 0 #fff, inset 1px 1px 0 #000}
   .recbtn.on-redeem{background:var(--red2);border-color:#000;color:#ffecec;box-shadow:inset -1px -1px 0 #fff, inset 1px 1px 0 #000}
   /* whole row tint by status */
   .rec.st-accept{border-color:var(--green2);background:#EAF6E6}
   .rec.st-reject{border-color:var(--orange2);background:#FDF0E2}
-  .rec.st-double{border-color:var(--purple2);background:#F5E9F5}
+  .rec.st-double{border-color:var(--blue2);background:#E6F4FB}
   .rec .recstatus{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;flex-basis:100%;color:var(--dim)}
   .rec.st-accept .recstatus{color:var(--green2)}
   .rec.st-reject .recstatus{color:var(--orange2)}
-  .rec.st-double .recstatus{color:var(--purple2)}
+  .rec.st-double .recstatus{color:var(--blue2)}
   .rec .recstatus.redeemed-badge{color:var(--red2)}
   .rec .recname.redeemed{text-decoration:line-through;text-decoration-thickness:2px;opacity:.65}
 
@@ -380,8 +426,7 @@
   #lockScreen{
     position:fixed;inset:0;z-index:200;
     background:var(--scene);
-    background-repeat:no-repeat;
-    background-size:100% 100%;
+    background-attachment:fixed;
     display:flex;align-items:center;justify-content:center;padding:20px;
   }
   .lock-panel{
@@ -498,6 +543,39 @@
     </div>
   </div>
 
+  <div id="chestOverlay">
+    <div class="archive-modal" role="dialog" aria-modal="true" aria-labelledby="chestModalTitle">
+      <div class="archive-modal-head">
+        <h2 id="chestModalTitle">🔒 Treasure Chest</h2>
+        <button class="archive-close" id="chestModalClose" aria-label="Close">×</button>
+      </div>
+      <div class="archive-modal-body">
+        <div id="chestListView">
+          <div id="chestList"></div>
+          <button type="button" class="btn-confirm" id="chestNewBtn" style="width:100%;margin-top:12px">+ Lock a New Surprise</button>
+        </div>
+        <div id="chestCreateView" hidden>
+          <div class="label" style="margin-top:0">Who is this for?</div>
+          <select id="chestTo" class="chest-select">
+            <option value="Jenna">To Jenna</option>
+            <option value="Darren">To Darren</option>
+          </select>
+          <div class="label">Your surprise note</div>
+          <textarea id="chestBody" class="notepad" placeholder="Write your surprise…" style="min-height:80px"></textarea>
+          <div class="label">Set a 4-digit PIN (they won't see it)</div>
+          <input id="chestPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••">
+          <div class="label">Opens on</div>
+          <input id="chestWhen" type="datetime-local">
+          <div class="pw-error" id="chestError"></div>
+          <div class="modal-btns" style="margin-top:14px">
+            <button type="button" class="btn-ghost" id="chestCancelBtn">Cancel</button>
+            <button type="button" class="btn-confirm" id="chestSendBtn">Lock &amp; Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="mailOverlay">
     <div class="mail-modal" role="dialog" aria-modal="true" aria-labelledby="mailModalTo">
       <div class="mail-modal-head">
@@ -568,6 +646,30 @@
       </span>
     </button>
   </div>
+
+  <div class="chest-wrap">
+    <button type="button" class="chest-btn" id="chestBtn" aria-label="Treasure Chest — locked surprises">
+      <svg class="chest-icon" viewBox="0 0 64 54" width="40" height="34" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="chestWood" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#A0672C"/><stop offset="100%" stop-color="#6E4419"/>
+          </linearGradient>
+          <linearGradient id="chestLid" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#C08A42"/><stop offset="100%" stop-color="#7C4F1F"/>
+          </linearGradient>
+        </defs>
+        <path d="M4 26 h56 v22 a4 4 0 0 1 -4 4 h-48 a4 4 0 0 1 -4 -4 z" fill="url(#chestWood)" stroke="#3E2A0F" stroke-width="2"/>
+        <path d="M4 26 a28 16 0 0 1 56 0 z" fill="url(#chestLid)" stroke="#3E2A0F" stroke-width="2"/>
+        <rect x="2" y="24" width="60" height="6" fill="#E0AE5C" stroke="#3E2A0F" stroke-width="1.5"/>
+        <rect x="27" y="19" width="10" height="15" rx="2" fill="#E0AE5C" stroke="#3E2A0F" stroke-width="1.5"/>
+        <path d="M32 23.5c-2.4 0-4.3 1.9-4.3 4.1 0 3 4.3 6.4 4.3 6.4s4.3-3.4 4.3-6.4c0-2.2-1.9-4.1-4.3-4.1z" fill="#E0455A" stroke="#7a1420" stroke-width="1"/>
+      </svg>
+      <span class="chest-text">
+        <span class="chest-title">Treasure Chest</span>
+        <span class="chest-sub" id="chestSub"></span>
+      </span>
+    </button>
+  </div>
 </div>
 
 <script>
@@ -620,7 +722,7 @@ const CLOUD_ON = !firebaseConfig.apiKey.startsWith("PASTE_");
 let dbRef = null;
 let applyingRemote = false; // guards against echo loops
 
-let state = { points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[] };
+let state = { points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[], chests:[] };
 // usedBlocks: 20 booleans · blockRecords: 20 slots of null or {name, ts, status} · earnedBlocks: how many blocks have appeared
 
 // load local copy first so there's something on screen instantly / offline
@@ -667,7 +769,7 @@ function connectCloud(){
       const remote = snap.val();
       if (remote){
         applyingRemote = true;
-        state = Object.assign({ points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[] }, remote);
+        state = Object.assign({ points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[], chests:[] }, remote);
         try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
         normalizeBlocks();
         render();
@@ -914,6 +1016,7 @@ function render(){
   }
 
   renderMessages();
+  renderChests();
 }
 
 function addPoints(n, label){
@@ -1094,6 +1197,192 @@ $("archiveModalClose").onclick = closeArchive;
 $("archiveOverlay").onclick = (e) => { if (e.target === $("archiveOverlay")) closeArchive(); };
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("archiveOverlay").classList.contains("open")) closeArchive(); });
 document.querySelectorAll(".send-btn").forEach(b => b.onclick = () => sendMessage(b.dataset.who));
+
+// ── treasure chest — locked surprises with a hidden PIN and a live countdown ──
+function fmtCountdown(ms){
+  if (ms <= 0) return "Ready!";
+  const s = Math.floor(ms/1000);
+  const d = Math.floor(s/86400);
+  const h = Math.floor((s%86400)/3600);
+  const m = Math.floor((s%3600)/60);
+  const sec = s%60;
+  if (d > 0) return d + "d " + String(h).padStart(2,"0") + "h " + String(m).padStart(2,"0") + "m";
+  if (h > 0) return h + "h " + String(m).padStart(2,"0") + "m " + String(sec).padStart(2,"0") + "s";
+  if (m > 0) return m + "m " + String(sec).padStart(2,"0") + "s";
+  return sec + "s";
+}
+
+function chestButtonSub(){
+  if (!Array.isArray(state.chests)) state.chests = [];
+  const pending = state.chests.filter(c => !c.opened);
+  const sub = $("chestSub");
+  if (!pending.length){
+    sub.textContent = "";
+    sub.classList.remove("ready");
+    return;
+  }
+  const soonest = pending.slice().sort((a, b) => a.openAt - b.openAt)[0];
+  const remain = soonest.openAt - Date.now();
+  if (remain <= 0){
+    sub.textContent = pending.length > 1 ? pending.length + " chests ready to open!" : "Ready to open!";
+    sub.classList.add("ready");
+  } else {
+    sub.textContent = (pending.length > 1 ? pending.length + " locked · next " : "Opens in ") + fmtCountdown(remain);
+    sub.classList.remove("ready");
+  }
+}
+
+function buildUnlockForm(item, c){
+  const row = document.createElement("div");
+  row.className = "chest-unlock-row";
+  const input = document.createElement("input");
+  input.type = "password"; input.inputMode = "numeric"; input.setAttribute("pattern", "[0-9]*");
+  input.maxLength = 4; input.placeholder = "PIN";
+  const btn = document.createElement("button");
+  btn.className = "btn-confirm"; btn.type = "button"; btn.textContent = "Unlock";
+  const err = document.createElement("div");
+  err.className = "chest-item-error";
+  const tryUnlock = () => {
+    if (input.value === c.pin){
+      c.opened = true;
+      save();
+      renderChests();
+      hearts();
+    } else {
+      err.textContent = "Wrong PIN — try again";
+      item.classList.remove("chest-shake"); void item.offsetWidth; item.classList.add("chest-shake");
+      input.value = ""; input.focus();
+    }
+  };
+  btn.onclick = tryUnlock;
+  input.addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+  row.append(input, btn);
+  item.append(row, err);
+}
+
+function renderChests(){
+  if (!Array.isArray(state.chests)) state.chests = [];
+  chestButtonSub();
+
+  const list = $("chestList");
+  if (!list) return;
+  const chests = state.chests.slice().sort((a, b) => a.openAt - b.openAt);
+  list.innerHTML = "";
+  if (!chests.length){
+    list.innerHTML = '<div class="chest-empty">No surprises locked away yet.</div>';
+    return;
+  }
+  const now = Date.now();
+  chests.forEach(c => {
+    const item = document.createElement("div");
+    item.className = "chest-item";
+    item.dataset.chestId = c.id;
+
+    const top = document.createElement("div");
+    top.className = "chest-item-top";
+    const icon = document.createElement("span");
+    icon.className = "chest-item-icon";
+    icon.textContent = c.opened ? "💌" : "🔒";
+    const who = document.createElement("span");
+    who.className = "chest-item-who";
+    who.textContent = "To " + c.to;
+    const when = document.createElement("span");
+    when.className = "chest-item-when";
+    when.textContent = new Date(c.openAt).toLocaleString([], {dateStyle:"medium", timeStyle:"short"});
+    const del = document.createElement("button");
+    del.className = "chest-item-del"; del.type = "button"; del.textContent = "×"; del.title = "Delete";
+    del.setAttribute("aria-label", "Delete");
+    del.onclick = () => { state.chests = state.chests.filter(x => x.id !== c.id); save(); renderChests(); };
+    top.append(icon, who, when, del);
+    item.append(top);
+
+    const remain = c.openAt - now;
+    const cd = document.createElement("div");
+    cd.className = "chest-item-countdown" + (remain <= 0 && !c.opened ? " ready" : "");
+    cd.textContent = c.opened ? "Opened" : (remain > 0 ? "Opens in " + fmtCountdown(remain) : "Ready to open");
+    item.append(cd);
+
+    if (c.opened){
+      const body = document.createElement("div");
+      body.className = "chest-item-body";
+      body.textContent = c.body;
+      item.append(body);
+    } else if (remain <= 0){
+      buildUnlockForm(item, c);
+    }
+    list.append(item);
+  });
+}
+
+// tick every second — updates countdowns live and flips a chest to its unlock
+// form the instant time's up, without disturbing anything mid-typing
+function tickChests(){
+  if (!Array.isArray(state.chests) || !state.chests.length) return;
+  chestButtonSub();
+  const now = Date.now();
+  let needsFullRender = false;
+  document.querySelectorAll(".chest-item").forEach(item => {
+    const c = state.chests.find(x => x.id === item.dataset.chestId);
+    if (!c || c.opened) return;
+    const remain = c.openAt - now;
+    const cd = item.querySelector(".chest-item-countdown");
+    if (remain > 0){
+      if (cd) cd.textContent = "Opens in " + fmtCountdown(remain);
+    } else if (!item.querySelector(".chest-unlock-row")){
+      needsFullRender = true;
+    }
+  });
+  if (needsFullRender) renderChests();
+}
+setInterval(tickChests, 1000);
+
+function openChestModal(){
+  const btn = $("chestBtn");
+  btn.classList.add("pop");
+  setTimeout(() => btn.classList.remove("pop"), 500);
+  showChestList();
+  renderChests();
+  $("chestOverlay").classList.add("open");
+}
+function closeChestModal(){
+  $("chestOverlay").classList.remove("open");
+}
+function showChestList(){
+  $("chestListView").hidden = false;
+  $("chestCreateView").hidden = true;
+}
+function showChestCreate(){
+  $("chestListView").hidden = true;
+  $("chestCreateView").hidden = false;
+  $("chestBody").value = "";
+  $("chestPin").value = "";
+  $("chestWhen").value = "";
+  $("chestError").textContent = "";
+}
+function sendChest(){
+  const to = $("chestTo").value;
+  const body = $("chestBody").value.trim();
+  const pin = $("chestPin").value.trim();
+  const whenVal = $("chestWhen").value;
+  const err = $("chestError");
+  if (!body){ err.textContent = "Write a note first."; return; }
+  if (!/^\d{4}$/.test(pin)){ err.textContent = "PIN must be exactly 4 digits."; return; }
+  if (!whenVal){ err.textContent = "Pick a date and time."; return; }
+  const openAt = new Date(whenVal).getTime();
+  if (isNaN(openAt) || openAt <= Date.now()){ err.textContent = "Pick a time in the future."; return; }
+  if (!Array.isArray(state.chests)) state.chests = [];
+  state.chests.push({ id: Date.now() + "-" + Math.random(), to, body, pin, openAt, opened: false, ts: Date.now() });
+  save();
+  showChestList();
+  renderChests();
+}
+$("chestBtn").onclick = openChestModal;
+$("chestModalClose").onclick = closeChestModal;
+$("chestOverlay").onclick = (e) => { if (e.target === $("chestOverlay")) closeChestModal(); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("chestOverlay").classList.contains("open")) closeChestModal(); });
+$("chestNewBtn").onclick = showChestCreate;
+$("chestCancelBtn").onclick = showChestList;
+$("chestSendBtn").onclick = sendChest;
 
 // terms & conditions modal
 (function(){
