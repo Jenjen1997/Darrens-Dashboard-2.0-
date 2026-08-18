@@ -422,22 +422,40 @@
   .cal-weekdays span{text-align:center;font-size:10.5px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
   .cal-day{
-    aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-    padding:5px 2px 0;background:var(--row);border:1px solid var(--edge);border-radius:0;
+    min-height:64px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;
+    padding:4px 4px 5px;background:var(--row);border:1px solid var(--edge);border-radius:0;
     box-shadow:inset 1px 1px 0 #fff;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink);
-    position:relative;transition:transform .1s ease;
+    position:relative;transition:transform .1s ease;overflow:hidden;
   }
-  .cal-day:hover{transform:scale(1.05);border-color:var(--tbar2)}
+  .cal-day:hover{transform:scale(1.03);border-color:var(--tbar2)}
   .cal-day.other-month{color:var(--dim);opacity:.45;background:transparent;box-shadow:none;cursor:default}
   .cal-day.other-month:hover{transform:none;border-color:var(--edge)}
   .cal-day.today{background:linear-gradient(180deg,var(--tbar2),var(--tbar1));color:#fff;border-color:#000}
-  .cal-day .cal-dot{
-    width:6px;height:6px;border-radius:50%;background:var(--red2);margin-top:3px;
-    box-shadow:0 0 0 1px #fff;
+  .cal-day-num{
+    flex-shrink:0;position:relative;display:inline-flex;align-items:center;justify-content:center;
+    min-width:22px;min-height:20px;
   }
-  .cal-day.today .cal-dot{background:#FFD700;box-shadow:0 0 0 1px var(--tbar1)}
+  .cal-day-num-text{position:relative;z-index:1}
+  .cal-day-num.has-event .cal-day-num-text{color:#fff}
+  .cal-day-num.has-event::before{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:26px;height:24px;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M12 21s-8-4.6-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.4-8 11-8 11z' fill='%23CC0000'/%3E%3C/svg%3E");
+    background-size:contain;background-repeat:no-repeat;
+  }
+  .cal-day.today .cal-day-num.has-event::before{
+    filter:drop-shadow(0 0 0 1px #000);
+  }
+  .cal-day-events{width:100%;display:flex;flex-direction:column;gap:2px;margin-top:3px;overflow:hidden}
+  .cal-event-chip{
+    width:100%;font-size:9.5px;font-weight:700;line-height:1.3;text-align:left;
+    background:var(--field);color:var(--ink);border:1px solid var(--edge);border-radius:0;
+    padding:1px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box;
+  }
+  .cal-day.today .cal-event-chip{background:rgba(255,255,255,.9);color:#1a1a1a;border-color:#000}
+  .cal-more{font-size:9px;font-weight:700;color:var(--dim)}
+  .cal-day.today .cal-more{color:#FFD700}
   .cal-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);margin-top:12px}
-  .cal-legend .cal-dot{width:6px;height:6px;border-radius:50%;background:var(--red2);display:inline-block}
 
   /* day-detail modal */
   #dayOverlay{
@@ -744,7 +762,7 @@
         <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
       </div>
       <div class="cal-grid" id="calGrid"></div>
-      <div class="cal-legend"><span class="cal-dot"></span> has an activity — tap a day to view or add one</div>
+      <div class="cal-legend">Tap a day to view or add an activity</div>
     </div>
   </div>
 </div>
@@ -1542,13 +1560,32 @@ function renderCalendar(){
     if (key === todayKey) cell.classList.add("today");
 
     const num = document.createElement("span");
-    num.textContent = d;
+    num.className = "cal-day-num";
+    const numText = document.createElement("span");
+    numText.className = "cal-day-num-text";
+    numText.textContent = d;
+    num.append(numText);
     cell.append(num);
 
-    if (eventsOn(key).length){
-      const dot = document.createElement("span");
-      dot.className = "cal-dot";
-      cell.append(dot);
+    const dayEvents = eventsOn(key);
+    if (dayEvents.length){
+      num.classList.add("has-event");
+      const wrap = document.createElement("div");
+      wrap.className = "cal-day-events";
+      const MAX_SHOWN = 2;
+      dayEvents.slice(0, MAX_SHOWN).forEach(ev => {
+        const chip = document.createElement("span");
+        chip.className = "cal-event-chip";
+        chip.textContent = ev.text;
+        wrap.append(chip);
+      });
+      if (dayEvents.length > MAX_SHOWN){
+        const more = document.createElement("span");
+        more.className = "cal-more";
+        more.textContent = "+" + (dayEvents.length - MAX_SHOWN) + " more";
+        wrap.append(more);
+      }
+      cell.append(wrap);
     }
 
     cell.onclick = () => openDayModal(key);
