@@ -394,6 +394,61 @@
   .btn-ghost{background:var(--card);border:2px outset var(--card);color:var(--ink)}
 
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;padding:0 20px}
+
+  /* tab bar — classic Windows folder-tab dialog look */
+  .tabbar{display:flex;gap:3px;margin:0 20px 16px;border-bottom:2px solid #000}
+  .tab-btn{
+    padding:8px 16px 7px;font-family:inherit;font-weight:700;font-size:13px;
+    background:var(--row);color:var(--dim);border:2px solid #000;border-bottom:none;
+    box-shadow:inset 1px 1px 0 #fff, inset -1px 0 0 var(--edge);
+    border-radius:0;position:relative;top:2px;cursor:pointer;
+  }
+  .tab-btn.active{
+    background:var(--card);color:var(--ink);top:0;padding-top:10px;
+    box-shadow:inset 1px 1px 0 #fff, inset -1px 0 0 var(--edge), 0 2px 0 var(--card);
+  }
+  .tabview[hidden]{display:none}
+
+  /* block calendar */
+  #calCard{margin:0 20px}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .cal-nav{
+    width:32px;height:32px;padding:0;font-size:14px;font-weight:700;
+    background:var(--card);border:2px outset var(--card);
+    box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 var(--edge);
+  }
+  .cal-title{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:.02em}
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+  .cal-weekdays span{text-align:center;font-size:10.5px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-day{
+    aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    padding:5px 2px 0;background:var(--row);border:1px solid var(--edge);border-radius:0;
+    box-shadow:inset 1px 1px 0 #fff;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink);
+    position:relative;transition:transform .1s ease;
+  }
+  .cal-day:hover{transform:scale(1.05);border-color:var(--tbar2)}
+  .cal-day.other-month{color:var(--dim);opacity:.45;background:transparent;box-shadow:none;cursor:default}
+  .cal-day.other-month:hover{transform:none;border-color:var(--edge)}
+  .cal-day.today{background:linear-gradient(180deg,var(--tbar2),var(--tbar1));color:#fff;border-color:#000}
+  .cal-day .cal-dot{
+    width:6px;height:6px;border-radius:50%;background:var(--red2);margin-top:3px;
+    box-shadow:0 0 0 1px #fff;
+  }
+  .cal-day.today .cal-dot{background:#FFD700;box-shadow:0 0 0 1px var(--tbar1)}
+  .cal-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);margin-top:12px}
+  .cal-legend .cal-dot{width:6px;height:6px;border-radius:50%;background:var(--red2);display:inline-block}
+
+  /* day-detail modal */
+  #dayOverlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.45);
+    display:none;align-items:center;justify-content:center;z-index:167;padding:16px;
+  }
+  #dayOverlay.open{display:flex}
+  .day-event-row{display:flex;align-items:center;gap:8px;background:var(--row);border:1px solid var(--edge);padding:8px 10px;margin-bottom:6px}
+  .day-event-text{flex:1;font-size:13px;color:var(--ink);word-break:break-word}
+  .day-event-del{background:transparent;border:none;color:var(--dim);font-size:14px;cursor:pointer;padding:0 2px;flex-shrink:0}
+  .day-empty{color:var(--dim);font-size:13px;padding:6px 0}
   .add-row{display:flex;gap:8px;margin-bottom:10px}
   #amount{width:110px;flex-shrink:0}
   #addBtn{width:100%;padding:10px 0;background:var(--green2);color:#fff;border:2px outset var(--green2);margin-bottom:12px}
@@ -474,6 +529,12 @@
     <div id="syncStatus" class="sync-status">○ Connecting…</div>
   </header>
 
+  <div class="tabbar">
+    <button type="button" class="tab-btn active" id="tabDashBtn" data-tab="dashboard">🏠 Dashboard</button>
+    <button type="button" class="tab-btn" id="tabCalBtn" data-tab="calendar">📅 Calendar</button>
+  </div>
+
+  <div id="dashboardView" class="tabview">
   <div class="gauge">
     <div class="gauge-center" id="gaugeCenter" role="button" tabindex="0" aria-label="Reward lock">
       <svg id="miniLock" viewBox="0 0 100 112" width="110" height="123" xmlns="http://www.w3.org/2000/svg">
@@ -670,6 +731,39 @@
       </span>
     </button>
   </div>
+  </div>
+
+  <div id="calendarView" class="tabview" hidden>
+    <div class="card" id="calCard">
+      <div class="cal-head">
+        <button type="button" class="cal-nav" id="calPrev" aria-label="Previous month">◀</button>
+        <div class="cal-title" id="calTitle">Month Year</div>
+        <button type="button" class="cal-nav" id="calNext" aria-label="Next month">▶</button>
+      </div>
+      <div class="cal-weekdays">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend"><span class="cal-dot"></span> has an activity — tap a day to view or add one</div>
+    </div>
+  </div>
+</div>
+
+<div id="dayOverlay">
+  <div class="archive-modal" role="dialog" aria-modal="true" aria-labelledby="dayModalTitle">
+    <div class="archive-modal-head">
+      <h2 id="dayModalTitle">Date</h2>
+      <button class="archive-close" id="dayModalClose" aria-label="Close">×</button>
+    </div>
+    <div class="archive-modal-body">
+      <div id="dayEventList"></div>
+      <div class="label" style="margin-top:12px">Add an activity</div>
+      <input id="dayEventInput" type="text" placeholder="e.g. Dentist at 3pm" maxlength="80">
+      <div class="modal-btns" style="margin-top:10px">
+        <button type="button" class="btn-confirm" id="dayEventAddBtn" style="width:100%">+ Add</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -722,7 +816,7 @@ const CLOUD_ON = !firebaseConfig.apiKey.startsWith("PASTE_");
 let dbRef = null;
 let applyingRemote = false; // guards against echo loops
 
-let state = { points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[], chests:[] };
+let state = { points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[], chests:[], calendarEvents:[] };
 // usedBlocks: 20 booleans · blockRecords: 20 slots of null or {name, ts, status} · earnedBlocks: how many blocks have appeared
 
 // load local copy first so there's something on screen instantly / offline
@@ -769,7 +863,7 @@ function connectCloud(){
       const remote = snap.val();
       if (remote){
         applyingRemote = true;
-        state = Object.assign({ points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[], chests:[] }, remote);
+        state = Object.assign({ points:0, lifetime:0, nextReward:"", history:[], unlocked:[], usedBlocks:[], blockRecords:[], earnedBlocks:0, messages:[], chests:[], calendarEvents:[] }, remote);
         try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
         normalizeBlocks();
         render();
@@ -1017,6 +1111,7 @@ function render(){
 
   renderMessages();
   renderChests();
+  renderCalendar();
 }
 
 function addPoints(n, label){
@@ -1383,6 +1478,142 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("chest
 $("chestNewBtn").onclick = showChestCreate;
 $("chestCancelBtn").onclick = showChestList;
 $("chestSendBtn").onclick = sendChest;
+
+// ── tabs — Dashboard / Calendar ──
+$("tabDashBtn").onclick = () => {
+  $("tabDashBtn").classList.add("active");
+  $("tabCalBtn").classList.remove("active");
+  $("dashboardView").hidden = false;
+  $("calendarView").hidden = true;
+};
+$("tabCalBtn").onclick = () => {
+  $("tabCalBtn").classList.add("active");
+  $("tabDashBtn").classList.remove("active");
+  $("calendarView").hidden = false;
+  $("dashboardView").hidden = true;
+  renderCalendar();
+};
+
+// ── block calendar — one month at a time ──
+const today = new Date();
+let calYear = today.getFullYear();
+let calMonth = today.getMonth(); // 0-11
+let openDayKey = null;
+
+function dateKey(y, m, d){
+  return y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+}
+function eventsOn(key){
+  if (!Array.isArray(state.calendarEvents)) state.calendarEvents = [];
+  return state.calendarEvents.filter(ev => ev.date === key);
+}
+
+function renderCalendar(){
+  const grid = $("calGrid");
+  if (!grid) return;
+  if (!Array.isArray(state.calendarEvents)) state.calendarEvents = [];
+
+  $("calTitle").textContent = MONTH_NAMES[calMonth] + " " + calYear;
+
+  const firstDow = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrevMonth = new Date(calYear, calMonth, 0).getDate();
+  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+  grid.innerHTML = "";
+  const totalCells = Math.ceil((firstDow + daysInMonth) / 7) * 7;
+
+  for (let i = 0; i < totalCells; i++){
+    const dayNum = i - firstDow + 1;
+    const cell = document.createElement("div");
+    cell.className = "cal-day";
+
+    let y = calYear, m = calMonth, d = dayNum;
+    if (dayNum < 1){
+      m = calMonth - 1; y = m < 0 ? calYear - 1 : calYear; m = (m + 12) % 12;
+      d = daysInPrevMonth + dayNum;
+      cell.classList.add("other-month");
+    } else if (dayNum > daysInMonth){
+      m = calMonth + 1; y = m > 11 ? calYear + 1 : calYear; m = m % 12;
+      d = dayNum - daysInMonth;
+      cell.classList.add("other-month");
+    }
+    const key = dateKey(y, m, d);
+    if (key === todayKey) cell.classList.add("today");
+
+    const num = document.createElement("span");
+    num.textContent = d;
+    cell.append(num);
+
+    if (eventsOn(key).length){
+      const dot = document.createElement("span");
+      dot.className = "cal-dot";
+      cell.append(dot);
+    }
+
+    cell.onclick = () => openDayModal(key);
+    grid.append(cell);
+  }
+}
+
+function fmtDayTitle(key){
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString([], {weekday:"long", month:"long", day:"numeric", year:"numeric"});
+}
+
+function renderDayEvents(){
+  const list = $("dayEventList");
+  list.innerHTML = "";
+  const evs = eventsOn(openDayKey).sort((a, b) => a.ts - b.ts);
+  if (!evs.length){
+    list.innerHTML = '<div class="day-empty">Nothing planned yet.</div>';
+    return;
+  }
+  evs.forEach(ev => {
+    const row = document.createElement("div");
+    row.className = "day-event-row";
+    const txt = document.createElement("span");
+    txt.className = "day-event-text";
+    txt.textContent = ev.text;
+    const del = document.createElement("button");
+    del.className = "day-event-del"; del.type = "button"; del.textContent = "×";
+    del.title = "Delete"; del.setAttribute("aria-label", "Delete");
+    del.onclick = () => {
+      state.calendarEvents = state.calendarEvents.filter(x => x.id !== ev.id);
+      save(); renderDayEvents(); renderCalendar();
+    };
+    row.append(txt, del);
+    list.append(row);
+  });
+}
+
+function openDayModal(key){
+  openDayKey = key;
+  $("dayModalTitle").textContent = fmtDayTitle(key);
+  $("dayEventInput").value = "";
+  renderDayEvents();
+  $("dayOverlay").classList.add("open");
+}
+function closeDayModal(){
+  $("dayOverlay").classList.remove("open");
+  openDayKey = null;
+}
+function addDayEvent(){
+  const inp = $("dayEventInput");
+  const text = inp.value.trim();
+  if (!text || !openDayKey) return;
+  if (!Array.isArray(state.calendarEvents)) state.calendarEvents = [];
+  state.calendarEvents.push({ id: Date.now() + "-" + Math.random(), date: openDayKey, text, ts: Date.now() });
+  inp.value = "";
+  save(); renderDayEvents(); renderCalendar();
+}
+$("calPrev").onclick = () => { calMonth--; if (calMonth < 0){ calMonth = 11; calYear--; } renderCalendar(); };
+$("calNext").onclick = () => { calMonth++; if (calMonth > 11){ calMonth = 0; calYear++; } renderCalendar(); };
+$("dayModalClose").onclick = closeDayModal;
+$("dayOverlay").onclick = (e) => { if (e.target === $("dayOverlay")) closeDayModal(); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("dayOverlay").classList.contains("open")) closeDayModal(); });
+$("dayEventAddBtn").onclick = addDayEvent;
+$("dayEventInput").addEventListener("keydown", e => { if (e.key === "Enter") addDayEvent(); });
 
 // terms & conditions modal
 (function(){
